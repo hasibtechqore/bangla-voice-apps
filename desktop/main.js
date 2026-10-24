@@ -4,11 +4,15 @@
 // inside the app: the theme hides the "Download App" section whenever
 // this string is present, so the download buttons appear only in a real
 // browser, never inside the app itself.
-const { app, BrowserWindow, shell } = require('electron');
+const { app, BrowserWindow, shell, Menu } = require('electron');
 
 const SITE_URL = 'https://www.seoacademybangla.top/';
 const SITE_HOSTS = ['www.seoacademybangla.top', 'seoacademybangla.top', 'seoacademybanglavoice.blogspot.com'];
 const APP_UA = 'BanglaVoiceApp/1.0';
+
+// Remove Electron's default menu bar (File / Edit / View / Window /
+// Help) so the app window shows only the website, like a real app.
+Menu.setApplicationMenu(null);
 
 function isSiteUrl(url) {
   try {
