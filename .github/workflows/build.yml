@@ -1,0 +1,80 @@
+name: Build Bangla Voice apps
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build-windows:
+    name: Windows installer
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install desktop deps
+        working-directory: desktop
+        run: npm install --no-audit --no-fund
+      - name: Build NSIS installer
+        working-directory: desktop
+        run: npx electron-builder --win nsis
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows-installer
+          path: desktop/dist/*.exe
+
+  build-android:
+    name: Android APK
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: android-actions/setup-android@v3
+      - name: Install android deps
+        working-directory: android
+        run: npm install --no-audit --no-fund
+      - name: Add android platform
+        working-directory: android
+        run: npx cap add android
+      - name: Tag WebView user-agent so the site hides download buttons inside the app
+        working-directory: android
+        shell: python3 {0}
+        run: |
+          import pathlib
+          p = pathlib.Path("android/app/src/main/java/com/seoacademy/banglavoice/MainActivity.java")
+          s = p.read_text()
+          assert "class MainActivity" in s, "MainActivity.java layout unexpected"
+          if "BanglaVoiceApp" not in s:
+              s = s.replace(
+                  "import com.getcapacitor.BridgeActivity;",
+                  "import com.getcapacitor.BridgeActivity;\nimport android.webkit.WebSettings;",
+              )
+              s = s.replace(
+                  "public class MainActivity extends BridgeActivity {",
+                  "public class MainActivity extends BridgeActivity {\n"
+                  "  @Override public void onResume() {\n"
+                  "    super.onResume();\n"
+                  "    WebSettings ws = this.bridge.getWebView().getSettings();\n"
+                  "    String ua = ws.getUserAgentString();\n"
+                  "    if (!ua.contains(\"BanglaVoiceApp\")) ws.setUserAgentString(ua + \" BanglaVoiceApp/1.0\");\n"
+                  "  }",
+              )
+              p.write_text(s)
+              print("MainActivity user-agent patch applied")
+          else:
+              print("MainActivity already patched")
+      - name: Build debug APK
+        working-directory: android/android
+        run: ./gradlew assembleDebug --no-daemon
+      - uses: actions/upload-artifact@v4
+        with:
+          name: android-apk
+          path: android/android/app/build/outputs/apk/debug/app-debug.apk
