@@ -74,6 +74,11 @@ jobs:
               print("MainActivity user-agent patch applied")
           else:
               print("MainActivity already patched")
+      - name: Generate launcher icons from SEO Academy logo
+        working-directory: android
+        run: |
+          pip install pillow -q
+          python3 make_icons.py
       - name: Build debug APK
         working-directory: android/android
         run: ./gradlew assembleDebug --no-daemon
