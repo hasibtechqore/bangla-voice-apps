@@ -1,12 +1,22 @@
 // SEO Academy Bangla Voice — desktop wrapper (Electron).
-// Loads the live website. The custom user-agent string "BanglaVoiceApp" is
-// how the website knows it runs inside the app: the theme hides the
-// "Download App" section whenever this string is present, so the download
-// buttons appear only in a real browser, never inside the app itself.
+// Loads the live website directly on its custom domain. The custom
+// user-agent marker "BanglaVoiceApp" is how the website knows it runs
+// inside the app: the theme hides the "Download App" section whenever
+// this string is present, so the download buttons appear only in a real
+// browser, never inside the app itself.
 const { app, BrowserWindow, shell } = require('electron');
 
-const SITE_URL = 'https://seoacademybanglavoice.blogspot.com/';
+const SITE_URL = 'https://www.seoacademybangla.top/';
+const SITE_HOSTS = ['www.seoacademybangla.top', 'seoacademybangla.top', 'seoacademybanglavoice.blogspot.com'];
 const APP_UA = 'BanglaVoiceApp/1.0';
+
+function isSiteUrl(url) {
+  try {
+    return SITE_HOSTS.includes(new URL(url).hostname);
+  } catch {
+    return false;
+  }
+}
 
 function createWindow() {
   const win = new BrowserWindow({
@@ -20,12 +30,24 @@ function createWindow() {
     }
   });
 
-  win.loadURL(SITE_URL, { userAgent: APP_UA });
+  // Append the marker to the DEFAULT user-agent (do not replace it) and
+  // keep it for every navigation in this window, so the site always
+  // recognises the app — including after redirects.
+  win.webContents.setUserAgent(win.webContents.getUserAgent() + ' ' + APP_UA);
 
-  // Open external links (Facebook, WhatsApp, etc.) in the system browser,
-  // never inside the app window.
+  win.loadURL(SITE_URL);
+
+  // Any link that would leave the site — including same-window clicks
+  // (e.g. a download button) and new windows — opens in the system
+  // browser instead of hijacking the app window.
+  win.webContents.on('will-navigate', (event, url) => {
+    if (!isSiteUrl(url)) {
+      event.preventDefault();
+      shell.openExternal(url);
+    }
+  });
   win.webContents.setWindowOpenHandler(({ url }) => {
-    if (!url.startsWith(SITE_URL) && !url.includes('seoacademybangla.top')) {
+    if (!isSiteUrl(url)) {
       shell.openExternal(url);
       return { action: 'deny' };
     }
