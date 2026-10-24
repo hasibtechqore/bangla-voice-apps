@@ -1,11 +1,17 @@
 """Generate Android launcher icons from the SEO Academy logo.
 
 Reads android/logo.png (square logo) and overwrites the Capacitor
-launcher resources under android/app/src/main/res/mipmap-*/ so the
-installed app shows the SEO Academy logo instead of the default
-Capacitor icon. Run from the android/ directory AFTER `npx cap add
-android` (which regenerates the android/ folder) and BEFORE the
-gradle build. Requires Pillow (pip install pillow).
+launcher resources so the installed app shows the SEO Academy logo
+instead of the default Capacitor icon. Run from the android/
+directory AFTER `npx cap add android` (which creates the nested
+android/android/ native project) and BEFORE the gradle build.
+Requires Pillow (pip install pillow).
+
+NOTE: the native project lives at android/android/app/... (one extra
+"android" level), NOT android/app/... — writing to the shallow path
+silently skips every density. Any missing density directory is a
+hard error so a bad run fails the job instead of shipping the
+default icon.
 """
 import sys
 from pathlib import Path
@@ -13,7 +19,9 @@ from PIL import Image, ImageDraw, ImageOps
 
 HERE = Path(__file__).resolve().parent
 LOGO = HERE / "logo.png"
-RES = HERE / "app" / "src" / "main" / "res"
+# Native project created by `npx cap add android` (run from android/):
+# android/android/app/src/main/res — NOT android/app/...
+RES = HERE / "android" / "app" / "src" / "main" / "res"
 
 # density -> launcher icon size in px
 DENSITIES = {"mdpi": 48, "hdpi": 72, "xhdpi": 96, "xxhdpi": 144, "xxxhdpi": 192}
@@ -42,11 +50,18 @@ def main():
         print(f"logo not found: {LOGO}")
         return 1
     logo = square_logo()
+    missing = []
     for density, size in DENSITIES.items():
         d = RES / f"mipmap-{density}"
         if not d.is_dir():
-            print(f"skip missing dir: {d}")
-            continue
+            missing.append(str(d))
+    if missing:
+        print("ERROR: missing mipmap directories (did `cap add android` run?):")
+        for m in missing:
+            print(f"  {m}")
+        return 1
+    for density, size in DENSITIES.items():
+        d = RES / f"mipmap-{density}"
         # legacy + round icons
         logo.resize((size, size), Image.LANCZOS).save(d / "ic_launcher.png")
         circle(logo, size).save(d / "ic_launcher_round.png")
