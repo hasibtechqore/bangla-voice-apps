@@ -82,7 +82,10 @@ jobs:
       - name: Build debug APK
         working-directory: android/android
         run: ./gradlew assembleDebug --no-daemon
+      - name: Rename APK to the app name
+        working-directory: android/android
+        run: mv app/build/outputs/apk/debug/app-debug.apk "app/build/outputs/apk/debug/SEO Academy Bangla Voice.apk"
       - uses: actions/upload-artifact@v4
         with:
           name: android-apk
-          path: android/android/app/build/outputs/apk/debug/app-debug.apk
+          path: android/android/app/build/outputs/apk/debug/SEO Academy Bangla Voice.apk
