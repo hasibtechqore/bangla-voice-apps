@@ -1,0 +1,48 @@
+name: Publish spaced release names
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  spaced:
+    name: Rename release assets to spaced names
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download current release assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release download v1.0.0 --repo hasibtechqore/bangla-voice-apps --dir spaced
+          ls -l spaced
+      - name: Rename to spaced names and upload
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mv "spaced/SEO.Academy.Bangla.Voice.apk" "spaced/SEO Academy Bangla Voice.apk"
+          mv "spaced/SEO.Academy.Bangla.Voice.Windows.exe" "spaced/SEO Academy Bangla Voice Windows.exe"
+          gh release upload v1.0.0 "spaced/SEO Academy Bangla Voice.apk" "spaced/SEO Academy Bangla Voice Windows.exe" --repo hasibtechqore/bangla-voice-apps --clobber
+          gh release view v1.0.0 --repo hasibtechqore/bangla-voice-apps --json assets --jq '.assets[].name'
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
