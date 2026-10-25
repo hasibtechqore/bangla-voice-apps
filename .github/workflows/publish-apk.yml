@@ -1,0 +1,31 @@
+name: Publish APK to release
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download latest android-apk artifact
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          RUN_ID=$(gh run list --workflow build.yml --status success --limit 1 --json databaseId --jq '.[0].databaseId')
+          echo "latest successful build run: $RUN_ID"
+          gh run download "$RUN_ID" --name android-apk --dir apk
+          ls -l apk
+      - name: Publish to release v1.0.0
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cd apk
+          mv "SEO Academy Bangla Voice.apk" SEO-Academy-Bangla-Voice.apk
+          ls -l
+          gh release delete-asset v1.0.0 SEO-Academy-Bangla-Voice.apk --yes || true
+          gh release upload v1.0.0 SEO-Academy-Bangla-Voice.apk
+          gh release view v1.0.0 --json assets --jq '.assets[] | .name + " " + (.size|tostring)'
