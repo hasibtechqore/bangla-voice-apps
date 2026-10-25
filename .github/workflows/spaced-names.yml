@@ -21,14 +21,14 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          mv "spaced/SEO.Academy.Bangla.Voice.apk" "spaced/SEO Academy Bangla Voice.apk"
-          mv "spaced/SEO.Academy.Bangla.Voice.Windows.exe" "spaced/SEO Academy Bangla Voice Windows.exe"
+          mv "spaced/SEO.Academy.Bangla.Voice.apk" "spaced/SEO-Academy-Bangla-Voice.apk"
+          mv "spaced/SEO.Academy.Bangla.Voice.Windows.exe" "spaced/SEO-Academy-Bangla-Voice-Windows.exe"
           UPLOAD_URL=$(gh release view v1.0.0 --repo hasibtechqore/bangla-voice-apps --json uploadUrl --jq '.uploadUrl')
           BASE=$(echo "$UPLOAD_URL" | cut -d'{' -f1)
                       gh release delete-asset v1.0.0 "SEO.Academy.Bangla.Voice.apk" --repo hasibtechqore/bangla-voice-apps --yes
                                   gh release delete-asset v1.0.0 "SEO.Academy.Bangla.Voice.Windows.exe" --repo hasibtechqore/bangla-voice-apps --yes
-                                  curl -sS -X POST -H "Authorization: Bearer $GH_TOKEN" -H "Content-Type: application/octet-stream" "$BASE?name=SEO%20Academy%20Bangla%20Voice.apk" --data-binary @"spaced/SEO Academy Bangla Voice.apk"
-          curl -sS -X POST -H "Authorization: Bearer $GH_TOKEN" -H "Content-Type: application/octet-stream" "$BASE?name=SEO%20Academy%20Bangla%20Voice%20Windows.exe" --data-binary @"spaced/SEO Academy Bangla Voice Windows.exe"
+                                  curl -sS -X POST -H "Authorization: Bearer $GH_TOKEN" -H "Content-Type: application/octet-stream" "$BASE?name=SEO-Academy-Bangla-Voice.apk" --data-binary @"spaced/SEO-Academy-Bangla-Voice.apk"
+          curl -sS -X POST -H "Authorization: Bearer $GH_TOKEN" -H "Content-Type: application/octet-stream" "$BASE?name=SEO-Academy-Bangla-Voice-Windows.exe" --data-binary @"spaced/SEO-Academy-Bangla-Voice-Windows.exe"
           gh release view v1.0.0 --repo hasibtechqore/bangla-voice-apps --json assets --jq '.assets[].name'
 
 
