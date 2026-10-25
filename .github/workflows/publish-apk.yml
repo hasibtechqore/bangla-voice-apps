@@ -11,13 +11,14 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
       - name: Download latest android-apk artifact
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          RUN_ID=$(gh run list --workflow build.yml --status success --limit 1 --json databaseId --jq '.[0].databaseId')
+          RUN_ID=$(gh run list --workflow build.yml --status success --limit 1 --json databaseId --jq '.[0].databaseId' --repo hasibtechqore/bangla-voice-apps)
           echo "latest successful build run: $RUN_ID"
-          gh run download "$RUN_ID" --name android-apk --dir apk
+          gh run download "$RUN_ID" --name android-apk --dir apk --repo hasibtechqore/bangla-voice-apps
           ls -l apk
       - name: Publish to release v1.0.0
         env:
@@ -26,6 +27,6 @@ jobs:
           cd apk
           mv "SEO Academy Bangla Voice.apk" SEO-Academy-Bangla-Voice.apk
           ls -l
-          gh release delete-asset v1.0.0 SEO-Academy-Bangla-Voice.apk --yes || true
-          gh release upload v1.0.0 SEO-Academy-Bangla-Voice.apk
-          gh release view v1.0.0 --json assets --jq '.assets[] | .name + " " + (.size|tostring)'
+          gh release delete-asset v1.0.0 SEO-Academy-Bangla-Voice.apk --yes --repo hasibtechqore/bangla-voice-apps || true
+          gh release upload v1.0.0 SEO-Academy-Bangla-Voice.apk --repo hasibtechqore/bangla-voice-apps
+          gh release view v1.0.0 --json assets --jq '.assets[] | .name + " " + (.size|tostring)' --repo hasibtechqore/bangla-voice-apps
